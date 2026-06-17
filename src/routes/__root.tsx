@@ -71,6 +71,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Pocket Chat Bro" },
       { property: "og:description", content: "Telegram-style personal chat app — your pocket companion." },
       { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Pocket Chat Bro" },
+      { name: "twitter:description", content: "Telegram-style personal chat app — your pocket companion." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a834e949-db56-415e-8eac-ee5d421f9480/id-preview-a36f703b--e89a3aaa-1ded-441f-89e9-8456160f18d8.lovable.app-1781683109349.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a834e949-db56-415e-8eac-ee5d421f9480/id-preview-a36f703b--e89a3aaa-1ded-441f-89e9-8456160f18d8.lovable.app-1781683109349.png" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
