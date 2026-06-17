@@ -170,7 +170,6 @@ function ChatPage() {
                     <div className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] ${out ? "text-white/75" : "text-muted-foreground"}`}>
                       <span>{formatTime(m.ts)}</span>
                       {out && <CheckCheck className="h-3 w-3" />}
-                      {out && false && <Check className="h-3 w-3" />}
                     </div>
                   </div>
                   {menuFor === m.id && (
