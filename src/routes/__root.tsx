@@ -8,53 +8,42 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist.
-        </p>
-        <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Go home
-          </Link>
-        </div>
+        <p className="mt-4 text-sm text-muted-foreground">Page not found.</p>
+        <Link to="/" className="mt-6 inline-block text-primary underline">
+          Go home
+        </Link>
       </div>
     </div>
   );
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          Something went wrong
-        </h1>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button
-            onClick={() => { router.invalidate(); reset(); }}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-          >
-            Try again
-          </button>
-        </div>
+        <h1 className="text-xl font-semibold text-foreground">Something went wrong</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
+        <button
+          onClick={() => { router.invalidate(); reset(); }}
+          className="mt-6 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+        >
+          Try again
+        </button>
       </div>
     </div>
   );
@@ -67,14 +56,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#0F1117" },
       { title: "Pocket Chat Bro" },
-      { name: "description", content: "Telegram-style personal chat app — your pocket companion." },
+      { name: "description", content: "Real-time chat with friends and your Pocket AI Bro." },
       { property: "og:title", content: "Pocket Chat Bro" },
-      { property: "og:description", content: "Telegram-style personal chat app — your pocket companion." },
+      { property: "og:description", content: "Real-time chat with friends and your Pocket AI Bro." },
       { property: "og:type", content: "website" },
-      { name: "twitter:title", content: "Pocket Chat Bro" },
-      { name: "twitter:description", content: "Telegram-style personal chat app — your pocket companion." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a834e949-db56-415e-8eac-ee5d421f9480/id-preview-a36f703b--e89a3aaa-1ded-441f-89e9-8456160f18d8.lovable.app-1781683109349.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a834e949-db56-415e-8eac-ee5d421f9480/id-preview-a36f703b--e89a3aaa-1ded-441f-89e9-8456160f18d8.lovable.app-1781683109349.png" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
@@ -109,19 +94,23 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
 
-  // Apply persisted theme on mount
   useEffect(() => {
-    const t = typeof window !== "undefined" ? localStorage.getItem("pcb:theme") : null;
-    if (t === "light") document.documentElement.classList.add("light");
-    else document.documentElement.classList.remove("light");
-  }, []);
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      router.invalidate();
+      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [router, queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>
       <div className="mx-auto flex min-h-[100dvh] max-w-md flex-col bg-background text-foreground">
         <Outlet />
       </div>
+      <Toaster theme="dark" position="top-center" />
     </QueryClientProvider>
   );
 }
