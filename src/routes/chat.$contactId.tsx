@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Send, Smile, Check, CheckCheck, Copy, Trash2 } from "lucide-react";
+import { ArrowLeft, Send, Smile, CheckCheck, Copy, Trash2 } from "lucide-react";
 import { CONTACTS, AUTO_REPLIES } from "@/lib/contacts";
 import {
   appendMessage,
