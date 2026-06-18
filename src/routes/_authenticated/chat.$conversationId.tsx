@@ -49,7 +49,7 @@ function ChatPage() {
 
   const headerName = useMemo(() => {
     if (!conv) return "";
-    if (conv.is_ai) return "Pocket AI Bro";
+    if (conv.is_ai) return "Pocket AI";
     return other?.display_name ?? other?.username ?? "Chat";
   }, [conv, other]);
 
@@ -241,8 +241,8 @@ function ChatPage() {
   }
 
   return (
-    <div className="flex h-[100dvh] flex-col">
-      <header className="flex items-center gap-3 border-b border-border/60 bg-background/95 px-3 pt-5 pb-3 backdrop-blur">
+    <div className="flex h-[100dvh] flex-col bg-background">
+      <header className="flex items-center gap-3 border-b border-border/60 bg-[var(--header)] px-3 pt-5 pb-2.5">
         <Link
           to="/"
           className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground hover:bg-card hover:text-foreground"
@@ -253,24 +253,31 @@ function ChatPage() {
         <div className="relative">
           <div
             className={`grid h-10 w-10 place-items-center rounded-full text-xs font-semibold text-white ${
-              conv.is_ai ? "bg-gradient-to-br from-primary to-fuchsia-500" : colorFor(other?.username ?? "x")
+              conv.is_ai ? "bg-gradient-to-br from-primary to-sky-400" : colorFor(other?.username ?? "x")
             }`}
           >
             {conv.is_ai ? <Sparkles className="h-5 w-5" /> : initials(other?.display_name ?? other?.username ?? "?")}
           </div>
           {(conv.is_ai || otherOnline) && (
-            <span className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-background bg-online" />
+            <span className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-[var(--header)] bg-online" />
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-semibold leading-tight">{headerName}</h1>
-          <p className="text-[11px] text-muted-foreground">
+          <h1 className="flex items-center gap-1.5 truncate font-semibold leading-tight">
+            <span className="truncate">{headerName}</span>
+            {conv.is_ai && (
+              <span className="shrink-0 rounded bg-primary/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">
+                Bot
+              </span>
+            )}
+          </h1>
+          <p className="text-[11.5px] text-muted-foreground">
             {otherTyping || aiThinking ? (
               <span className="text-primary">typing…</span>
             ) : conv.is_ai ? (
-              "Always available"
+              "AI assistant · always online"
             ) : otherOnline ? (
-              <span className="text-online">Online</span>
+              <span className="text-online">online</span>
             ) : other ? (
               `@${other.username}`
             ) : (
@@ -280,32 +287,47 @@ function ChatPage() {
         </div>
       </header>
 
-      <div ref={scrollerRef} className="no-scrollbar flex-1 overflow-y-auto px-3 py-4">
-        <div className="flex flex-col gap-2">
-          {messages.map((m) => {
+      <div ref={scrollerRef} className="no-scrollbar flex-1 overflow-y-auto px-3 py-3">
+        <div className="flex flex-col gap-[3px]">
+          {messages.map((m, i) => {
             const out = m.sender_id === me;
+            const prev = messages[i - 1];
+            const next = messages[i + 1];
+            const sameAsPrev = prev && (prev.sender_id === m.sender_id) && (prev.is_ai === m.is_ai);
+            const sameAsNext = next && (next.sender_id === m.sender_id) && (next.is_ai === m.is_ai);
+            const showDate = !prev || new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString();
+            const tail = !sameAsNext;
             return (
-              <div key={m.id} className={`flex ${out ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`animate-message-in max-w-[78%] rounded-2xl px-3.5 py-2 text-[15px] leading-snug shadow-sm ${
-                    out
-                      ? "rounded-br-md bg-bubble-out text-bubble-out-foreground"
-                      : "rounded-bl-md bg-bubble-in text-bubble-in-foreground"
-                  }`}
-                >
-                  <div className="whitespace-pre-wrap break-words">{m.message_text}</div>
+              <div key={m.id}>
+                {showDate && (
+                  <div className="my-3 flex justify-center">
+                    <span className="rounded-full bg-card/80 px-3 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur">
+                      {new Date(m.created_at).toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" })}
+                    </span>
+                  </div>
+                )}
+                <div className={`flex ${out ? "justify-end" : "justify-start"} ${sameAsPrev ? "mt-[2px]" : "mt-1.5"}`}>
                   <div
-                    className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] ${
-                      out ? "text-white/75" : "text-muted-foreground"
+                    className={`animate-message-in max-w-[80%] px-3 py-1.5 text-[15px] leading-snug shadow-sm ${
+                      out
+                        ? `bg-bubble-out text-bubble-out-foreground ${tail ? "rounded-2xl rounded-br-[6px]" : "rounded-2xl"}`
+                        : `bg-bubble-in text-bubble-in-foreground ${tail ? "rounded-2xl rounded-bl-[6px]" : "rounded-2xl"}`
                     }`}
                   >
-                    <span>{formatTime(m.created_at)}</span>
-                    {out &&
-                      (m.read_status ? (
-                        <CheckCheck className="h-3 w-3" />
-                      ) : (
-                        <Check className="h-3 w-3" />
-                      ))}
+                    <div className="whitespace-pre-wrap break-words">{m.message_text}</div>
+                    <div
+                      className={`-mt-0.5 flex items-center justify-end gap-1 text-[10.5px] ${
+                        out ? "text-white/75" : "text-muted-foreground"
+                      }`}
+                    >
+                      <span>{formatTime(m.created_at)}</span>
+                      {out &&
+                        (m.read_status ? (
+                          <CheckCheck className="h-3.5 w-3.5" />
+                        ) : (
+                          <Check className="h-3.5 w-3.5" />
+                        ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -313,8 +335,8 @@ function ChatPage() {
           })}
 
           {(otherTyping || aiThinking) && (
-            <div className="flex justify-start">
-              <div className="flex items-center gap-1 rounded-2xl rounded-bl-md bg-bubble-in px-4 py-3">
+            <div className="mt-1.5 flex justify-start">
+              <div className="flex items-center gap-1 rounded-2xl rounded-bl-[6px] bg-bubble-in px-4 py-3">
                 <span className="h-1.5 w-1.5 animate-typing-dot rounded-full bg-muted-foreground" style={{ animationDelay: "0ms" }} />
                 <span className="h-1.5 w-1.5 animate-typing-dot rounded-full bg-muted-foreground" style={{ animationDelay: "150ms" }} />
                 <span className="h-1.5 w-1.5 animate-typing-dot rounded-full bg-muted-foreground" style={{ animationDelay: "300ms" }} />
