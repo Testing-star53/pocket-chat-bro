@@ -129,33 +129,23 @@ function ChatListPage() {
   }, [me]);
 
   return (
-    <div className="flex h-[100dvh] flex-col">
-      <header className="flex items-center justify-between border-b border-border/60 px-5 pt-6 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30">
-            <MessageCircle className="h-5 w-5" strokeWidth={2.5} />
-          </div>
-          <div>
-            <h1 className="font-display text-xl font-bold tracking-tight">
-              Pocket <span className="text-primary">Chat Bro</span>
-            </h1>
-            <p className="text-xs text-muted-foreground">Live messaging</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
+    <div className="flex h-[100dvh] flex-col bg-background">
+      <header className="flex items-center justify-between border-b border-border/60 bg-[var(--header)] px-4 pt-5 pb-3">
+        <h1 className="text-[22px] font-semibold tracking-tight">Chats</h1>
+        <div className="flex items-center gap-1">
           <button
             onClick={() => navigate({ to: "/new" })}
-            className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/30"
+            className="grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition hover:bg-card hover:text-foreground"
             aria-label="New chat"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-[22px] w-[22px]" />
           </button>
           <Link
             to="/settings"
-            className="grid h-10 w-10 place-items-center rounded-xl bg-card text-muted-foreground transition hover:text-foreground"
+            className="grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition hover:bg-card hover:text-foreground"
             aria-label="Settings"
           >
-            <Settings className="h-5 w-5" />
+            <Settings className="h-[20px] w-[20px]" />
           </Link>
         </div>
       </header>
@@ -167,51 +157,56 @@ function ChatListPage() {
       ) : rows.length === 0 ? (
         <div className="grid flex-1 place-items-center px-8 text-center">
           <div>
+            <MessageCircle className="mx-auto mb-3 h-12 w-12 text-muted-foreground/40" />
             <p className="text-muted-foreground">No chats yet.</p>
             <button
               onClick={() => navigate({ to: "/new" })}
-              className="mt-4 rounded-xl bg-primary px-5 py-2.5 font-semibold text-primary-foreground"
+              className="mt-4 rounded-full bg-primary px-5 py-2.5 font-medium text-primary-foreground"
             >
               Start a chat
             </button>
           </div>
         </div>
       ) : (
-        <ul className="no-scrollbar flex-1 overflow-y-auto px-2 py-2">
+        <ul className="no-scrollbar flex-1 overflow-y-auto">
           {rows.map((r) => (
             <li key={r.conversation_id}>
               <Link
                 to="/chat/$conversationId"
                 params={{ conversationId: r.conversation_id }}
-                className="flex items-center gap-3 rounded-2xl px-3 py-3 transition active:scale-[0.98] active:bg-card"
+                className="flex items-center gap-3 px-4 py-2.5 transition active:bg-card"
               >
                 <div
-                  className={`relative grid h-12 w-12 shrink-0 place-items-center rounded-full text-sm font-semibold text-white shadow-md ${
-                    r.is_ai ? "bg-gradient-to-br from-primary to-fuchsia-500" : colorFor(r.other_username ?? "x")
+                  className={`grid h-[54px] w-[54px] shrink-0 place-items-center rounded-full text-[17px] font-semibold text-white ${
+                    r.is_ai ? "bg-gradient-to-br from-primary to-sky-400" : colorFor(r.other_username ?? "x")
                   }`}
                 >
-                  {r.is_ai ? <Sparkles className="h-5 w-5" /> : initials(r.other_name ?? "?")}
+                  {r.is_ai ? <Sparkles className="h-6 w-6" /> : initials(r.other_name ?? "?")}
                 </div>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 border-b border-border/40 pb-2.5">
                   <div className="flex items-center justify-between gap-2">
-                    <h2 className="truncate font-semibold">
-                      {r.other_name}
-                      {r.is_ai && <span className="ml-1.5 text-[10px] text-primary">AI</span>}
+                    <h2 className="flex min-w-0 items-center gap-1.5 font-semibold text-[15.5px]">
+                      <span className="truncate">{r.other_name}</span>
+                      {r.is_ai && (
+                        <span className="shrink-0 rounded bg-primary/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">
+                          Bot
+                        </span>
+                      )}
                     </h2>
-                    <span className="shrink-0 text-[11px] text-muted-foreground">
+                    <span className="shrink-0 text-[11.5px] text-muted-foreground">
                       {r.last_text ? formatRelative(r.last_message_at) : ""}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="truncate text-sm text-muted-foreground">
+                  <div className="mt-0.5 flex items-center justify-between gap-2">
+                    <p className="truncate text-[14px] text-muted-foreground">
                       {r.last_text
                         ? (r.last_sender === me ? "You: " : "") + r.last_text
                         : r.is_ai
-                        ? "Ask me anything — Tamil + English"
+                        ? "Your professional AI assistant"
                         : "Say hi 👋"}
                     </p>
                     {r.unread > 0 && (
-                      <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground">
+                      <span className="grid h-[22px] min-w-[22px] shrink-0 place-items-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground">
                         {r.unread}
                       </span>
                     )}
