@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Search, Loader2, UserPlus, Share2, X, Copy, Check } from "lucide-react";
+import { ArrowLeft, Search, Loader2, UserPlus, Share2, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
