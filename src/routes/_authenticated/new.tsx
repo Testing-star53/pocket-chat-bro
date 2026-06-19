@@ -165,6 +165,56 @@ function NewChatPage() {
           ))}
         </ul>
       </div>
+
+      <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+        <DialogContent className="gap-0 border-none bg-card p-0 sm:rounded-2xl">
+          <DialogHeader className="relative border-b border-border/60 px-4 py-3">
+            <DialogTitle className="text-center text-base font-semibold">Invite Friends</DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col items-center gap-4 px-6 py-6">
+            <p className="text-center text-sm text-muted-foreground">
+              Share your username <span className="font-semibold text-foreground">@{myUsername}</span> so friends can find you.
+            </p>
+
+            {inviteUrl && (
+              <div className="rounded-2xl bg-white p-3">
+                <QRCodeSVG
+                  value={inviteUrl}
+                  size={200}
+                  bgColor="#ffffff"
+                  fgColor="#0F1117"
+                  level="M"
+                  includeMargin={false}
+                />
+              </div>
+            )}
+
+            <div className="flex w-full gap-2">
+              <button
+                onClick={copyLink}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-secondary py-2.5 text-sm font-medium text-secondary-foreground transition active:scale-[0.98]"
+              >
+                {linkCopied ? (
+                  <>
+                    <Check className="h-4 w-4 text-online" /> Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4" /> Copy link
+                  </>
+                )}
+              </button>
+              <button
+                onClick={nativeShare}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-medium text-primary-foreground transition active:scale-[0.98]"
+              >
+                <Share2 className="h-4 w-4" /> Share
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
