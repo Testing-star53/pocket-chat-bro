@@ -1,9 +1,16 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Search, Loader2, UserPlus } from "lucide-react";
+import { ArrowLeft, Search, Loader2, UserPlus, Share2, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
+import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
 import { colorFor, initials } from "@/lib/chat-utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/new")({
   head: () => ({ meta: [{ title: "New chat" }] }),
@@ -19,6 +26,8 @@ function NewChatPage() {
   const [loading, setLoading] = useState(false);
   const [me, setMe] = useState<string | null>(null);
   const [myUsername, setMyUsername] = useState<string>("");
+  const [shareOpen, setShareOpen] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -58,6 +67,35 @@ function NewChatPage() {
     navigate({ to: "/chat/$conversationId", params: { conversationId: data as string } });
   }
 
+  const inviteUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/auth?invite=${encodeURIComponent(myUsername)}`
+    : "";
+
+  async function copyLink() {
+    if (!inviteUrl) return;
+    await navigator.clipboard.writeText(inviteUrl);
+    setLinkCopied(true);
+    toast.success("Invite link copied");
+    setTimeout(() => setLinkCopied(false), 2000);
+  }
+
+  async function nativeShare() {
+    if (!inviteUrl) return;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Chat with me on Pocket Chat Bro",
+          text: `Add me on Pocket Chat Bro. My username is @${myUsername}.`,
+          url: inviteUrl,
+        });
+      } catch {
+        // user cancelled
+      }
+    } else {
+      copyLink();
+    }
+  }
+
   return (
     <div className="flex h-[100dvh] flex-col">
       <header className="flex items-center gap-3 border-b border-border/60 px-3 pt-5 pb-3">
@@ -68,7 +106,14 @@ function NewChatPage() {
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="font-semibold">New chat</h1>
+        <h1 className="font-semibold flex-1">New chat</h1>
+        <button
+          onClick={() => setShareOpen(true)}
+          className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground hover:bg-card hover:text-foreground"
+          aria-label="Share invite"
+        >
+          <Share2 className="h-5 w-5" />
+        </button>
       </header>
 
       <div className="px-4 py-3">
@@ -120,6 +165,56 @@ function NewChatPage() {
           ))}
         </ul>
       </div>
+
+      <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+        <DialogContent className="gap-0 border-none bg-card p-0 sm:rounded-2xl">
+          <DialogHeader className="relative border-b border-border/60 px-4 py-3">
+            <DialogTitle className="text-center text-base font-semibold">Invite Friends</DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col items-center gap-4 px-6 py-6">
+            <p className="text-center text-sm text-muted-foreground">
+              Share your username <span className="font-semibold text-foreground">@{myUsername}</span> so friends can find you.
+            </p>
+
+            {inviteUrl && (
+              <div className="rounded-2xl bg-white p-3">
+                <QRCodeSVG
+                  value={inviteUrl}
+                  size={200}
+                  bgColor="#ffffff"
+                  fgColor="#0F1117"
+                  level="M"
+                  includeMargin={false}
+                />
+              </div>
+            )}
+
+            <div className="flex w-full gap-2">
+              <button
+                onClick={copyLink}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-secondary py-2.5 text-sm font-medium text-secondary-foreground transition active:scale-[0.98]"
+              >
+                {linkCopied ? (
+                  <>
+                    <Check className="h-4 w-4 text-online" /> Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4" /> Copy link
+                  </>
+                )}
+              </button>
+              <button
+                onClick={nativeShare}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-medium text-primary-foreground transition active:scale-[0.98]"
+              >
+                <Share2 className="h-4 w-4" /> Share
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
