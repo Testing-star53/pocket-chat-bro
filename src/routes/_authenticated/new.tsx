@@ -26,6 +26,8 @@ function NewChatPage() {
   const [loading, setLoading] = useState(false);
   const [me, setMe] = useState<string | null>(null);
   const [myUsername, setMyUsername] = useState<string>("");
+  const [shareOpen, setShareOpen] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
