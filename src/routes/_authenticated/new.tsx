@@ -67,6 +67,35 @@ function NewChatPage() {
     navigate({ to: "/chat/$conversationId", params: { conversationId: data as string } });
   }
 
+  const inviteUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/auth?invite=${encodeURIComponent(myUsername)}`
+    : "";
+
+  async function copyLink() {
+    if (!inviteUrl) return;
+    await navigator.clipboard.writeText(inviteUrl);
+    setLinkCopied(true);
+    toast.success("Invite link copied");
+    setTimeout(() => setLinkCopied(false), 2000);
+  }
+
+  async function nativeShare() {
+    if (!inviteUrl) return;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Chat with me on Pocket Chat Bro",
+          text: `Add me on Pocket Chat Bro. My username is @${myUsername}.`,
+          url: inviteUrl,
+        });
+      } catch {
+        // user cancelled
+      }
+    } else {
+      copyLink();
+    }
+  }
+
   return (
     <div className="flex h-[100dvh] flex-col">
       <header className="flex items-center gap-3 border-b border-border/60 px-3 pt-5 pb-3">
@@ -77,7 +106,14 @@ function NewChatPage() {
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="font-semibold">New chat</h1>
+        <h1 className="font-semibold flex-1">New chat</h1>
+        <button
+          onClick={() => setShareOpen(true)}
+          className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground hover:bg-card hover:text-foreground"
+          aria-label="Share invite"
+        >
+          <Share2 className="h-5 w-5" />
+        </button>
       </header>
 
       <div className="px-4 py-3">
