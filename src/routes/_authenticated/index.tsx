@@ -929,9 +929,68 @@ function ChatPage() {
           <img src={lightbox} alt="Full size" className="max-h-full max-w-full object-contain" />
         </div>
       )}
+
+      {/* Clear conversation confirmation */}
+      {confirmClear && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 animate-fade-in"
+          onClick={() => setConfirmClear(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl bg-card p-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="mb-2 text-lg font-semibold">Clear conversation?</h3>
+            <p className="mb-5 text-sm text-muted-foreground">
+              Are you sure you want to delete this chat? This cannot be undone.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setConfirmClear(false)}
+                className="flex-1 rounded-xl bg-muted py-2.5 text-sm font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={clearConversation}
+                className="flex-1 rounded-xl bg-destructive py-2.5 text-sm font-semibold text-destructive-foreground"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+// File attachment bubble
+function FileBubble({ content, out }: { content: string; out: boolean }) {
+  let meta: { n: string; s: number; m: string; d: string } | null = null;
+  try { meta = JSON.parse(content); } catch { /* ignore */ }
+  if (!meta) return <div className="text-sm italic opacity-70">Attachment unavailable</div>;
+  const sizeKB = Math.max(1, Math.round(meta.s / 1024));
+  return (
+    <a
+      href={meta.d}
+      download={meta.n}
+      className={`flex items-center gap-2.5 rounded-lg px-1 py-1 min-w-[200px] ${out ? "text-white" : ""}`}
+    >
+      <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${out ? "bg-white/20" : "bg-primary/15 text-primary"}`}>
+        <FileText className="h-5 w-5" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[13px] font-medium">{meta.n}</p>
+        <p className={`text-[11px] ${out ? "text-white/70" : "text-muted-foreground"}`}>
+          {sizeKB} KB
+        </p>
+      </div>
+      <Download className={`h-4 w-4 ${out ? "text-white/70" : "text-muted-foreground"}`} />
+    </a>
+  );
+}
+
 
 // Audio Player Component
 function AudioPlayer({ src }: { src: string }) {
