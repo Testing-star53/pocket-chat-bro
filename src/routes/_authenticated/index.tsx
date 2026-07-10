@@ -740,15 +740,39 @@ function ChatPage() {
       )}
 
       {/* Input bar */}
-      <div className="flex items-center gap-2 border-t border-border bg-background px-3 py-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
+      <div className="flex items-center gap-1.5 border-t border-border bg-background px-2 py-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
         <button
           onClick={() => fileRef.current?.click()}
           className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-card text-muted-foreground transition hover:text-foreground"
-          aria-label="Attach"
+          aria-label="Attach file"
+          title="Attach file"
         >
           <Paperclip className="h-5 w-5" />
         </button>
-        <input ref={fileRef} type="file" accept="image/*" onChange={handleImage} className="hidden" />
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*,application/pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx"
+          onChange={handleAttachment}
+          className="hidden"
+        />
+
+        <button
+          onClick={() => cameraRef.current?.click()}
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-card text-muted-foreground transition hover:text-foreground"
+          aria-label="Camera"
+          title="Take photo"
+        >
+          <Camera className="h-5 w-5" />
+        </button>
+        <input
+          ref={cameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleAttachment}
+          className="hidden"
+        />
 
         <button
           onClick={() => setShowEmoji((s) => !s)}
@@ -759,6 +783,7 @@ function ChatPage() {
         >
           <Smile className="h-5 w-5" />
         </button>
+
 
         {recording ? (
           <div className="flex flex-1 items-center gap-3 rounded-full bg-destructive/10 px-4 py-2.5">
