@@ -511,7 +511,7 @@ function ChatPage() {
   return (
     <div className="flex h-[100dvh] flex-col">
       {/* Header */}
-      <header className="flex items-center gap-3 border-b border-border/60 px-3 pt-5 pb-2.5">
+      <header className="relative flex items-center gap-3 border-b border-border/60 px-3 pt-5 pb-2.5">
         <div className="relative shrink-0">
           <div className="grid h-10 w-10 place-items-center overflow-hidden rounded-full bg-card text-sm font-semibold text-white">
             {otherUser?.avatar_base64 ? (
