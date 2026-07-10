@@ -14,158 +14,142 @@ export type Database = {
   }
   public: {
     Tables: {
-      conversation_participants: {
-        Row: {
-          conversation_id: string
-          joined_at: string
-          user_id: string
-        }
-        Insert: {
-          conversation_id: string
-          joined_at?: string
-          user_id: string
-        }
-        Update: {
-          conversation_id?: string
-          joined_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "conversation_participants_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      conversations: {
-        Row: {
-          ai_owner: string | null
-          created_at: string
-          id: string
-          is_ai: boolean
-          last_message_at: string
-        }
-        Insert: {
-          ai_owner?: string | null
-          created_at?: string
-          id?: string
-          is_ai?: boolean
-          last_message_at?: string
-        }
-        Update: {
-          ai_owner?: string | null
-          created_at?: string
-          id?: string
-          is_ai?: boolean
-          last_message_at?: string
-        }
-        Relationships: []
-      }
       messages: {
         Row: {
-          conversation_id: string
+          content: string | null
           created_at: string
+          deleted_for: string[]
           id: string
-          is_ai: boolean
-          message_text: string
-          read_status: boolean
-          sender_id: string | null
+          is_deleted: boolean
+          is_edited: boolean
+          is_read: boolean
+          reply_to: string | null
+          sender_id: string
+          type: string
         }
         Insert: {
-          conversation_id: string
+          content?: string | null
           created_at?: string
+          deleted_for?: string[]
           id?: string
-          is_ai?: boolean
-          message_text: string
-          read_status?: boolean
-          sender_id?: string | null
+          is_deleted?: boolean
+          is_edited?: boolean
+          is_read?: boolean
+          reply_to?: string | null
+          sender_id: string
+          type?: string
         }
         Update: {
-          conversation_id?: string
+          content?: string | null
           created_at?: string
+          deleted_for?: string[]
           id?: string
-          is_ai?: boolean
-          message_text?: string
-          read_status?: boolean
-          sender_id?: string | null
+          is_deleted?: boolean
+          is_edited?: boolean
+          is_read?: boolean
+          reply_to?: string | null
+          sender_id?: string
+          type?: string
         }
         Relationships: [
           {
-            foreignKeyName: "messages_conversation_id_fkey"
-            columns: ["conversation_id"]
+            foreignKeyName: "messages_reply_to_fkey"
+            columns: ["reply_to"]
             isOneToOne: false
-            referencedRelation: "conversations"
+            referencedRelation: "messages"
             referencedColumns: ["id"]
           },
         ]
       }
       profiles: {
         Row: {
+          avatar_base64: string | null
           avatar_url: string | null
           created_at: string
           display_name: string | null
           id: string
+          is_online: boolean | null
+          last_seen: string | null
           username: string
         }
         Insert: {
+          avatar_base64?: string | null
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           id: string
+          is_online?: boolean | null
+          last_seen?: string | null
           username: string
         }
         Update: {
+          avatar_base64?: string | null
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          is_online?: boolean | null
+          last_seen?: string | null
           username?: string
         }
         Relationships: []
       }
-      typing_status: {
+      reactions: {
         Row: {
-          conversation_id: string
-          updated_at: string
+          created_at: string
+          emoji: string
+          id: string
+          message_id: string
           user_id: string
         }
         Insert: {
-          conversation_id: string
-          updated_at?: string
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: string
           user_id: string
         }
         Update: {
-          conversation_id?: string
-          updated_at?: string
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "typing_status_conversation_id_fkey"
-            columns: ["conversation_id"]
+            foreignKeyName: "reactions_message_id_fkey"
+            columns: ["message_id"]
             isOneToOne: false
-            referencedRelation: "conversations"
+            referencedRelation: "messages"
             referencedColumns: ["id"]
           },
         ]
+      }
+      typing_status: {
+        Row: {
+          is_typing: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          is_typing?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          is_typing?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      get_or_create_ai_conversation: { Args: never; Returns: string }
-      is_participant: {
-        Args: { _conv: string; _user: string }
-        Returns: boolean
-      }
-      start_direct_conversation: {
-        Args: { _other_username: string }
-        Returns: string
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
