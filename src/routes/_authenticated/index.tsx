@@ -2,8 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Send, Smile, Paperclip, Mic, X, Reply, Check, CheckCheck,
-  Settings, Pencil, Trash2, ChevronLeft, Play, Pause,
-  Loader2, ImageIcon
+  Settings, Pencil, Trash2, Play, Pause,
+  Camera, MoreVertical, ShieldCheck, FileText, Download
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
