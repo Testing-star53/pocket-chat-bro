@@ -53,10 +53,13 @@ function ChatPage() {
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [tabUnread, setTabUnread] = useState(0);
+  const [headerMenu, setHeaderMenu] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   const scrollerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
