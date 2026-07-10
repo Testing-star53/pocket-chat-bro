@@ -248,14 +248,14 @@ function ChatPage() {
     setText("");
     setShowEmoji(false);
 
-    const msg: Partial<Message> = {
+    const msg = {
       sender_id: me,
       content: value,
       type: "text",
       reply_to: replyTo?.id ?? null,
       is_edited: false,
       is_deleted: false,
-      deleted_for: [],
+      deleted_for: [] as string[],
       is_read: false,
     };
 
