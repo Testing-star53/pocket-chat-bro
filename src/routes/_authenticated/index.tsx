@@ -649,6 +649,8 @@ function ChatPage() {
                       </button>
                     ) : m.type === "audio" && m.content ? (
                       <AudioPlayer src={m.content} />
+                    ) : m.type === "file" && m.content ? (
+                      <FileBubble content={m.content} out={out} />
                     ) : (
                       <div className="whitespace-pre-wrap break-words">{m.content}</div>
                     )}
