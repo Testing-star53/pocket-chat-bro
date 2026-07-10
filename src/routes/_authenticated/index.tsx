@@ -541,13 +541,38 @@ function ChatPage() {
           </p>
         </div>
         <button
+          onClick={() => setHeaderMenu((s) => !s)}
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-card"
+          aria-label="More"
+        >
+          <MoreVertical className="h-5 w-5" />
+        </button>
+        <button
           onClick={() => navigate({ to: "/settings" })}
           className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-card"
           aria-label="Settings"
         >
           <Settings className="h-5 w-5" />
         </button>
+        {headerMenu && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setHeaderMenu(false)} />
+            <div className="absolute right-3 top-14 z-50 w-56 animate-fade-in rounded-xl bg-card py-1 shadow-2xl">
+              <div className="flex items-center gap-2 border-b border-border/60 px-3 py-2 text-[11px] text-muted-foreground">
+                <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                Messages auto-delete in 6h
+              </div>
+              <button
+                onClick={() => { setHeaderMenu(false); setConfirmClear(true); }}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-destructive transition hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4" /> Clear conversation
+              </button>
+            </div>
+          </>
+        )}
       </header>
+
 
       {/* Messages */}
       <div ref={scrollerRef} className="no-scrollbar flex-1 overflow-y-auto px-3 py-3">
