@@ -7,144 +7,165 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
-      profiles: {
+      conversation_participants: {
         Row: {
-          id: string
-          username: string
-          avatar_base64: string | null
-          display_name: string | null
-          last_seen: string | null
-          is_online: boolean | null
-          created_at: string
+          conversation_id: string
+          joined_at: string
+          user_id: string
         }
         Insert: {
-          id: string
-          username: string
-          avatar_base64?: string | null
-          display_name?: string | null
-          last_seen?: string | null
-          is_online?: boolean | null
-          created_at?: string
+          conversation_id: string
+          joined_at?: string
+          user_id: string
         }
         Update: {
-          id?: string
-          username?: string
-          avatar_base64?: string | null
-          display_name?: string | null
-          last_seen?: string | null
-          is_online?: boolean | null
+          conversation_id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          ai_owner: string | null
+          created_at: string
+          id: string
+          is_ai: boolean
+          last_message_at: string
+        }
+        Insert: {
+          ai_owner?: string | null
           created_at?: string
+          id?: string
+          is_ai?: boolean
+          last_message_at?: string
+        }
+        Update: {
+          ai_owner?: string | null
+          created_at?: string
+          id?: string
+          is_ai?: boolean
+          last_message_at?: string
         }
         Relationships: []
       }
       messages: {
         Row: {
-          id: string
-          sender_id: string
-          content: string | null
-          type: string
-          reply_to: string | null
-          is_edited: boolean
-          is_deleted: boolean
-          deleted_for: string[]
-          is_read: boolean
+          conversation_id: string
           created_at: string
+          id: string
+          is_ai: boolean
+          message_text: string
+          read_status: boolean
+          sender_id: string | null
         }
         Insert: {
-          id?: string
-          sender_id: string
-          content?: string | null
-          type?: string
-          reply_to?: string | null
-          is_edited?: boolean
-          is_deleted?: boolean
-          deleted_for?: string[]
-          is_read?: boolean
+          conversation_id: string
           created_at?: string
+          id?: string
+          is_ai?: boolean
+          message_text: string
+          read_status?: boolean
+          sender_id?: string | null
         }
         Update: {
-          id?: string
-          sender_id?: string
-          content?: string | null
-          type?: string
-          reply_to?: string | null
-          is_edited?: boolean
-          is_deleted?: boolean
-          deleted_for?: string[]
-          is_read?: boolean
+          conversation_id?: string
           created_at?: string
+          id?: string
+          is_ai?: boolean
+          message_text?: string
+          read_status?: boolean
+          sender_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "messages_reply_to_fkey"
-            columns: ["reply_to"]
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
             isOneToOne: false
-            referencedRelation: "messages"
+            referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
         ]
       }
-      reactions: {
+      profiles: {
         Row: {
-          id: string
-          message_id: string
-          user_id: string
-          emoji: string
+          avatar_url: string | null
           created_at: string
+          display_name: string | null
+          id: string
+          username: string
         }
         Insert: {
-          id?: string
-          message_id: string
-          user_id: string
-          emoji: string
+          avatar_url?: string | null
           created_at?: string
+          display_name?: string | null
+          id: string
+          username: string
         }
         Update: {
-          id?: string
-          message_id?: string
-          user_id?: string
-          emoji?: string
+          avatar_url?: string | null
           created_at?: string
+          display_name?: string | null
+          id?: string
+          username?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "reactions_message_id_fkey"
-            columns: ["message_id"]
-            isOneToOne: false
-            referencedRelation: "messages"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       typing_status: {
         Row: {
-          user_id: string
-          is_typing: boolean
+          conversation_id: string
           updated_at: string
+          user_id: string
         }
         Insert: {
-          user_id: string
-          is_typing?: boolean
+          conversation_id: string
           updated_at?: string
+          user_id: string
         }
         Update: {
-          user_id?: string
-          is_typing?: boolean
+          conversation_id?: string
           updated_at?: string
+          user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "typing_status_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      can_register: { Args: never; Returns: boolean }
+      get_or_create_ai_conversation: { Args: never; Returns: string }
+      is_participant: {
+        Args: { _conv: string; _user: string }
+        Returns: boolean
+      }
+      start_direct_conversation: {
+        Args: { _other_username: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
@@ -156,6 +177,7 @@ export type Database = {
 }
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
@@ -252,6 +274,23 @@ export type Enums<
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
