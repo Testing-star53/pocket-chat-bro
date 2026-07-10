@@ -350,21 +350,29 @@ function ChatPage() {
     return reactions.filter((r) => r.message_id === msgId);
   }
 
-  // Image upload
-  async function handleImage(e: React.ChangeEvent<HTMLInputElement>) {
+  // Attachment upload (image, pdf, doc) or camera photo
+  async function handleAttachment(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !me) return;
-    if (file.size > MAX_IMAGE_SIZE) {
-      toast.error("Image must be under 500KB");
+    const isImage = file.type.startsWith("image/");
+    const maxSize = isImage ? MAX_IMAGE_SIZE : 1024 * 1024; // 1MB for files
+    if (file.size > maxSize) {
+      toast.error(isImage ? "Image must be under 500KB" : "File must be under 1MB");
+      e.target.value = "";
       return;
     }
     const reader = new FileReader();
     reader.onload = async () => {
       const b64 = reader.result as string;
+      const payload = isImage
+        ? { content: b64, type: "image" }
+        : {
+            content: JSON.stringify({ n: file.name, s: file.size, m: file.type, d: b64 }),
+            type: "file",
+          };
       const { error } = await supabase.from("messages").insert({
         sender_id: me,
-        content: b64,
-        type: "image",
+        ...payload,
         reply_to: replyTo?.id ?? null,
       });
       if (error) toast.error(error.message);
@@ -373,6 +381,26 @@ function ChatPage() {
     reader.readAsDataURL(file);
     e.target.value = "";
   }
+
+  // Clear entire conversation (my messages + received messages I received)
+  async function clearConversation() {
+    if (!me) return;
+    // Delete my messages permanently; mark others as deleted-for-me
+    const { error: e1 } = await supabase.from("messages").delete().eq("sender_id", me);
+    if (e1) { toast.error(e1.message); return; }
+    // For messages I didn't send, add me to deleted_for
+    const others = messages.filter((m) => m.sender_id !== me && !(m.deleted_for || []).includes(me));
+    for (const m of others) {
+      await supabase
+        .from("messages")
+        .update({ deleted_for: [...(m.deleted_for || []), me] })
+        .eq("id", m.id);
+    }
+    setConfirmClear(false);
+    setHeaderMenu(false);
+    toast.success("Conversation cleared");
+  }
+
 
   // Voice recording
   async function startRecording() {
