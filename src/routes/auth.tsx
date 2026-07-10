@@ -29,12 +29,6 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { data: regCheck } = await supabase.rpc("can_register");
-        if (!regCheck) {
-          toast.error("Only 2 users allowed. Registration is closed.");
-          setLoading(false);
-          return;
-        }
         const clean = username.toLowerCase().replace(/[^a-z0-9_]/g, "");
         if (clean.length < 3) {
           toast.error("Username must be at least 3 characters");
