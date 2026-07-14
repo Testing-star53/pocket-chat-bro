@@ -2,8 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Send, Smile, Paperclip, Mic, X, Reply, Check, CheckCheck,
-  Settings, Pencil, Trash2, Play, Pause,
-  Camera, MoreVertical, ShieldCheck, FileText, Download
+  Settings, Pencil, Trash2, ChevronLeft, Play, Pause,
+  Loader2, ImageIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,13 +53,10 @@ function ChatPage() {
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [tabUnread, setTabUnread] = useState(0);
-  const [headerMenu, setHeaderMenu] = useState(false);
-  const [confirmClear, setConfirmClear] = useState(false);
 
   const scrollerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const cameraRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -251,14 +248,14 @@ function ChatPage() {
     setText("");
     setShowEmoji(false);
 
-    const msg = {
+    const msg: Partial<Message> = {
       sender_id: me,
       content: value,
       type: "text",
       reply_to: replyTo?.id ?? null,
       is_edited: false,
       is_deleted: false,
-      deleted_for: [] as string[],
+      deleted_for: [],
       is_read: false,
     };
 
@@ -350,29 +347,21 @@ function ChatPage() {
     return reactions.filter((r) => r.message_id === msgId);
   }
 
-  // Attachment upload (image, pdf, doc) or camera photo
-  async function handleAttachment(e: React.ChangeEvent<HTMLInputElement>) {
+  // Image upload
+  async function handleImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !me) return;
-    const isImage = file.type.startsWith("image/");
-    const maxSize = isImage ? MAX_IMAGE_SIZE : 1024 * 1024; // 1MB for files
-    if (file.size > maxSize) {
-      toast.error(isImage ? "Image must be under 500KB" : "File must be under 1MB");
-      e.target.value = "";
+    if (file.size > MAX_IMAGE_SIZE) {
+      toast.error("Image must be under 500KB");
       return;
     }
     const reader = new FileReader();
     reader.onload = async () => {
       const b64 = reader.result as string;
-      const payload = isImage
-        ? { content: b64, type: "image" }
-        : {
-            content: JSON.stringify({ n: file.name, s: file.size, m: file.type, d: b64 }),
-            type: "file",
-          };
       const { error } = await supabase.from("messages").insert({
         sender_id: me,
-        ...payload,
+        content: b64,
+        type: "image",
         reply_to: replyTo?.id ?? null,
       });
       if (error) toast.error(error.message);
@@ -381,26 +370,6 @@ function ChatPage() {
     reader.readAsDataURL(file);
     e.target.value = "";
   }
-
-  // Clear entire conversation (my messages + received messages I received)
-  async function clearConversation() {
-    if (!me) return;
-    // Delete my messages permanently; mark others as deleted-for-me
-    const { error: e1 } = await supabase.from("messages").delete().eq("sender_id", me);
-    if (e1) { toast.error(e1.message); return; }
-    // For messages I didn't send, add me to deleted_for
-    const others = messages.filter((m) => m.sender_id !== me && !(m.deleted_for || []).includes(me));
-    for (const m of others) {
-      await supabase
-        .from("messages")
-        .update({ deleted_for: [...(m.deleted_for || []), me] })
-        .eq("id", m.id);
-    }
-    setConfirmClear(false);
-    setHeaderMenu(false);
-    toast.success("Conversation cleared");
-  }
-
 
   // Voice recording
   async function startRecording() {
@@ -511,7 +480,7 @@ function ChatPage() {
   return (
     <div className="flex h-[100dvh] flex-col">
       {/* Header */}
-      <header className="relative flex items-center gap-3 border-b border-border/60 px-3 pt-5 pb-2.5">
+      <header className="flex items-center gap-3 border-b border-border/60 px-3 pt-5 pb-2.5">
         <div className="relative shrink-0">
           <div className="grid h-10 w-10 place-items-center overflow-hidden rounded-full bg-card text-sm font-semibold text-white">
             {otherUser?.avatar_base64 ? (
@@ -541,38 +510,13 @@ function ChatPage() {
           </p>
         </div>
         <button
-          onClick={() => setHeaderMenu((s) => !s)}
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-card"
-          aria-label="More"
-        >
-          <MoreVertical className="h-5 w-5" />
-        </button>
-        <button
           onClick={() => navigate({ to: "/settings" })}
           className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-card"
           aria-label="Settings"
         >
           <Settings className="h-5 w-5" />
         </button>
-        {headerMenu && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setHeaderMenu(false)} />
-            <div className="absolute right-3 top-14 z-50 w-56 animate-fade-in rounded-xl bg-card py-1 shadow-2xl">
-              <div className="flex items-center gap-2 border-b border-border/60 px-3 py-2 text-[11px] text-muted-foreground">
-                <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-                Messages auto-delete in 6h
-              </div>
-              <button
-                onClick={() => { setHeaderMenu(false); setConfirmClear(true); }}
-                className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-destructive transition hover:bg-destructive/10"
-              >
-                <Trash2 className="h-4 w-4" /> Clear conversation
-              </button>
-            </div>
-          </>
-        )}
       </header>
-
 
       {/* Messages */}
       <div ref={scrollerRef} className="no-scrollbar flex-1 overflow-y-auto px-3 py-3">
@@ -649,8 +593,6 @@ function ChatPage() {
                       </button>
                     ) : m.type === "audio" && m.content ? (
                       <AudioPlayer src={m.content} />
-                    ) : m.type === "file" && m.content ? (
-                      <FileBubble content={m.content} out={out} />
                     ) : (
                       <div className="whitespace-pre-wrap break-words">{m.content}</div>
                     )}
@@ -767,39 +709,15 @@ function ChatPage() {
       )}
 
       {/* Input bar */}
-      <div className="flex items-center gap-1.5 border-t border-border bg-background px-2 py-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
+      <div className="flex items-center gap-2 border-t border-border bg-background px-3 py-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
         <button
           onClick={() => fileRef.current?.click()}
           className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-card text-muted-foreground transition hover:text-foreground"
-          aria-label="Attach file"
-          title="Attach file"
+          aria-label="Attach"
         >
           <Paperclip className="h-5 w-5" />
         </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*,application/pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx"
-          onChange={handleAttachment}
-          className="hidden"
-        />
-
-        <button
-          onClick={() => cameraRef.current?.click()}
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-card text-muted-foreground transition hover:text-foreground"
-          aria-label="Camera"
-          title="Take photo"
-        >
-          <Camera className="h-5 w-5" />
-        </button>
-        <input
-          ref={cameraRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={handleAttachment}
-          className="hidden"
-        />
+        <input ref={fileRef} type="file" accept="image/*" onChange={handleImage} className="hidden" />
 
         <button
           onClick={() => setShowEmoji((s) => !s)}
@@ -810,7 +728,6 @@ function ChatPage() {
         >
           <Smile className="h-5 w-5" />
         </button>
-
 
         {recording ? (
           <div className="flex flex-1 items-center gap-3 rounded-full bg-destructive/10 px-4 py-2.5">
@@ -929,68 +846,9 @@ function ChatPage() {
           <img src={lightbox} alt="Full size" className="max-h-full max-w-full object-contain" />
         </div>
       )}
-
-      {/* Clear conversation confirmation */}
-      {confirmClear && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 animate-fade-in"
-          onClick={() => setConfirmClear(false)}
-        >
-          <div
-            className="w-full max-w-sm rounded-2xl bg-card p-5 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="mb-2 text-lg font-semibold">Clear conversation?</h3>
-            <p className="mb-5 text-sm text-muted-foreground">
-              Are you sure you want to delete this chat? This cannot be undone.
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setConfirmClear(false)}
-                className="flex-1 rounded-xl bg-muted py-2.5 text-sm font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={clearConversation}
-                className="flex-1 rounded-xl bg-destructive py-2.5 text-sm font-semibold text-destructive-foreground"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
-
-// File attachment bubble
-function FileBubble({ content, out }: { content: string; out: boolean }) {
-  let meta: { n: string; s: number; m: string; d: string } | null = null;
-  try { meta = JSON.parse(content); } catch { /* ignore */ }
-  if (!meta) return <div className="text-sm italic opacity-70">Attachment unavailable</div>;
-  const sizeKB = Math.max(1, Math.round(meta.s / 1024));
-  return (
-    <a
-      href={meta.d}
-      download={meta.n}
-      className={`flex items-center gap-2.5 rounded-lg px-1 py-1 min-w-[200px] ${out ? "text-white" : ""}`}
-    >
-      <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${out ? "bg-white/20" : "bg-primary/15 text-primary"}`}>
-        <FileText className="h-5 w-5" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[13px] font-medium">{meta.n}</p>
-        <p className={`text-[11px] ${out ? "text-white/70" : "text-muted-foreground"}`}>
-          {sizeKB} KB
-        </p>
-      </div>
-      <Download className={`h-4 w-4 ${out ? "text-white/70" : "text-muted-foreground"}`} />
-    </a>
-  );
-}
-
 
 // Audio Player Component
 function AudioPlayer({ src }: { src: string }) {

@@ -29,13 +29,19 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
+        const { data: regCheck } = await supabase.rpc("can_register");
+        if (!regCheck) {
+          toast.error("Only 2 users allowed. Registration is closed.");
+          setLoading(false);
+          return;
+        }
         const clean = username.toLowerCase().replace(/[^a-z0-9_]/g, "");
         if (clean.length < 3) {
           toast.error("Username must be at least 3 characters");
           setLoading(false);
           return;
         }
-        const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+        const { error: signUpErr } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -45,52 +51,18 @@ function AuthPage() {
         });
         if (signUpErr) throw signUpErr;
 
-        if (signUpData.session) {
-          toast.success("Welcome to Pocket Chat Bro!");
-          navigate({ to: "/" });
-          return;
-        }
-
         const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-        if (signInErr) {
-          toast.success("Account created! Please check your email to confirm, then sign in.");
-          setMode("signin");
-          setPassword("");
-        } else {
-          toast.success("Welcome to Pocket Chat Bro!");
-          navigate({ to: "/" });
-        }
+        if (signInErr && !signInErr.message?.includes("Email not confirmed")) throw signInErr;
+
+        toast.success("Welcome to Pocket Chat Bro!");
+        navigate({ to: "/" });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          if (error.message?.toLowerCase().includes("invalid")) {
-            throw new Error("Wrong email or password");
-          }
-          throw error;
-        }
+        if (error) throw error;
         navigate({ to: "/" });
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sign-in failed");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleForgotPassword() {
-    if (!email) {
-      toast.error("Enter your email above first");
-      return;
-    }
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (error) throw error;
-      toast.success("Password reset link sent — check your email");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not send reset email");
     } finally {
       setLoading(false);
     }
@@ -144,17 +116,6 @@ function AuthPage() {
           {mode === "signin" ? "Sign in" : "Create account"}
         </button>
       </form>
-
-      {mode === "signin" && (
-        <button
-          type="button"
-          onClick={handleForgotPassword}
-          disabled={loading}
-          className="mt-4 text-sm text-muted-foreground hover:text-primary"
-        >
-          Forgot password?
-        </button>
-      )}
 
       <button
         type="button"
