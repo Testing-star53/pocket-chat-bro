@@ -35,7 +35,7 @@ function AuthPage() {
           setLoading(false);
           return;
         }
-        const { error: signUpErr } = await supabase.auth.signUp({
+        const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -45,14 +45,29 @@ function AuthPage() {
         });
         if (signUpErr) throw signUpErr;
 
-        const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-        if (signInErr && !signInErr.message?.includes("Email not confirmed")) throw signInErr;
+        if (signUpData.session) {
+          toast.success("Welcome to Pocket Chat Bro!");
+          navigate({ to: "/" });
+          return;
+        }
 
-        toast.success("Welcome to Pocket Chat Bro!");
-        navigate({ to: "/" });
+        const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInErr) {
+          toast.success("Account created! Please check your email to confirm, then sign in.");
+          setMode("signin");
+          setPassword("");
+        } else {
+          toast.success("Welcome to Pocket Chat Bro!");
+          navigate({ to: "/" });
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          if (error.message?.toLowerCase().includes("invalid")) {
+            throw new Error("Wrong email or password");
+          }
+          throw error;
+        }
         navigate({ to: "/" });
       }
     } catch (err) {
