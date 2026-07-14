@@ -77,6 +77,25 @@ function AuthPage() {
     }
   }
 
+  async function handleForgotPassword() {
+    if (!email) {
+      toast.error("Enter your email above first");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Password reset link sent — check your email");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not send reset email");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="flex min-h-[100dvh] flex-col items-center justify-center px-6 py-10">
       <div className="mb-8 flex flex-col items-center">
