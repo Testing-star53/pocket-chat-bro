@@ -1,22 +1,24 @@
-## Problem
+## Goal
 
-Signup succeeds (HTTP 200) but the immediate `signInWithPassword` returns `invalid_credentials`. Cause: email confirmation is required on this project, so the new user is created in an unconfirmed state and cannot log in with password until they click the confirmation email. The auth page tries to sign in right after signup, which fails.
+Add a "Forgot password?" flow so users who forget their password can reset it via email.
 
-## Fix
+## Changes
 
-1. **Enable auto-confirm email** on the Lovable Cloud auth settings so new signups are instantly usable (no email verification step). This directly resolves the "Invalid login credentials" right-after-signup case.
-   - `disable_signup: false`, `external_anonymous_users_enabled: false`, `auto_confirm_email: true`, `password_hibp_enabled: true`.
+1. **`src/routes/auth.tsx`** — on the sign-in screen, add a "Forgot password?" link below the password field. Clicking it:
+   - Prompts for the email (prefills the field they typed).
+   - Calls `supabase.auth.resetPasswordForEmail(email, { redirectTo: \`${window.location.origin}/reset-password\` })`.
+   - Shows a toast: "Password reset link sent to your email."
 
-2. **Harden `src/routes/auth.tsx` signup flow** so it's robust even if confirmation is ever re-enabled:
-   - After `signUp`, check if a session was returned. If yes → navigate to `/`.
-   - If no session (confirmation required) → show a clear toast: "Check your email to confirm your account" instead of attempting `signInWithPassword` and surfacing a confusing "Invalid login credentials" error.
-   - Keep the sign-in branch as-is.
+2. **`src/routes/reset-password.tsx`** (new, public route, `ssr: false`) — landing page from the reset email:
+   - Detects `type=recovery` in the URL hash (Supabase auto-establishes a recovery session).
+   - Shows a form with "New password" + "Confirm password".
+   - Calls `supabase.auth.updateUser({ password })`.
+   - On success: toast, sign out, redirect to `/auth`.
+   - On error / missing recovery session: show a message + link back to `/auth`.
 
-3. **Improve error message mapping** on sign-in: when Supabase returns `invalid_credentials`, show "Wrong email or password" instead of the raw string, so future mistakes are clearer.
-
-No database or UI-layout changes. Existing chat, share/QR, auto-delete, and settings features remain untouched.
+3. Confirm auth email templates are active (Lovable Cloud auto-confirm was enabled, but password-reset emails still send). If the reset email doesn't arrive, we'll set up email infra as a follow-up.
 
 ## Files touched
 
-- `src/routes/auth.tsx` — signup post-flow + friendlier error text.
-- Auth config via `supabase--configure_auth` — enable auto-confirm.
+- `src/routes/auth.tsx` — add "Forgot password?" link + handler.
+- `src/routes/reset-password.tsx` — new file.
