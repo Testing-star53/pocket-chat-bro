@@ -145,6 +145,17 @@ function AuthPage() {
         </button>
       </form>
 
+      {mode === "signin" && (
+        <button
+          type="button"
+          onClick={handleForgotPassword}
+          disabled={loading}
+          className="mt-4 text-sm text-muted-foreground hover:text-primary"
+        >
+          Forgot password?
+        </button>
+      )}
+
       <button
         type="button"
         onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
