@@ -78,7 +78,7 @@ function ChatPage() {
           <BotIcon className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-semibold leading-tight">Pocket AI</h1>
+          <h1 className="truncate font-semibold leading-tight">Pocket AI — Private Multilingual Chat</h1>
           <p className="text-xs text-muted-foreground">Multilingual · Private · Stateless</p>
         </div>
         <button
