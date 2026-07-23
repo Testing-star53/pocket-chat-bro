@@ -128,11 +128,11 @@ function ChatPage() {
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.15s]" />
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current" />
                 </div>
-      </main>
+              </div>
             )}
           </div>
         )}
-      </div>
+      </main>
 
       {/* Composer */}
       <div className="border-t border-border/60 bg-card/40 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
