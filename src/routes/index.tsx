@@ -12,7 +12,11 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Chat with Pocket AI in any language. No accounts, no history, nothing stored." },
       { property: "og:title", content: "Pocket AI — Private Multilingual Chat" },
       { property: "og:description", content: "Chat with Pocket AI in any language. No accounts, no history, nothing stored." },
+      { property: "og:url", content: "https://pocket-chat-bro.lovable.app/" },
+      { name: "twitter:title", content: "Pocket AI — Private Multilingual Chat" },
+      { name: "twitter:description", content: "Chat with Pocket AI in any language. No accounts, no history, nothing stored." },
     ],
+    links: [{ rel: "canonical", href: "https://pocket-chat-bro.lovable.app/" }],
   }),
   component: ChatPage,
 });
