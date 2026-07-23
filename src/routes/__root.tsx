@@ -6,11 +6,11 @@ import {
   Scripts,
   Link,
 } from "@tanstack/react-router";
-
-import type { ReactNode } from "react";
-import { Toaster } from "sonner";
+import { lazy, Suspense, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+
+const Toaster = lazy(() => import("sonner").then((m) => ({ default: m.Toaster })));
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
@@ -25,7 +25,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "preload", as: "style", href: appCss },
+      { rel: "stylesheet", href: appCss },
+      { rel: "preconnect", href: "https://ai.gateway.lovable.dev", crossOrigin: "anonymous" },
+      { rel: "dns-prefetch", href: "https://ai.gateway.lovable.dev" },
+    ],
   }),
   component: RootComponent,
   notFoundComponent: () => (
@@ -37,7 +42,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     </div>
   ),
 });
-
 
 const queryClient = new QueryClient();
 
@@ -63,7 +67,9 @@ function RootComponent() {
           <Outlet />
         </div>
       </RootShell>
-      <Toaster theme="dark" position="top-center" />
+      <Suspense fallback={null}>
+        <Toaster theme="dark" position="top-center" />
+      </Suspense>
     </QueryClientProvider>
   );
 }
