@@ -92,7 +92,7 @@ function ChatPage() {
       </header>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
+      <main ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4" aria-label="Conversation">
         {messages.length === 0 && !sending ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
             <div className="grid h-16 w-16 place-items-center rounded-3xl bg-primary/10 text-primary">
