@@ -7,77 +7,49 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          id: string
-          username: string
-          avatar_base64: string | null
-          display_name: string | null
-          last_seen: string | null
-          is_online: boolean | null
-          created_at: string
-        }
-        Insert: {
-          id: string
-          username: string
-          avatar_base64?: string | null
-          display_name?: string | null
-          last_seen?: string | null
-          is_online?: boolean | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          username?: string
-          avatar_base64?: string | null
-          display_name?: string | null
-          last_seen?: string | null
-          is_online?: boolean | null
-          created_at?: string
-        }
-        Relationships: []
-      }
       messages: {
         Row: {
-          id: string
-          sender_id: string
           content: string | null
-          type: string
-          reply_to: string | null
-          is_edited: boolean
-          is_deleted: boolean
-          deleted_for: string[]
-          is_read: boolean
           created_at: string
+          deleted_for: string[]
+          id: string
+          is_deleted: boolean
+          is_edited: boolean
+          is_read: boolean
+          reply_to: string | null
+          sender_id: string
+          type: string
         }
         Insert: {
-          id?: string
-          sender_id: string
           content?: string | null
-          type?: string
-          reply_to?: string | null
-          is_edited?: boolean
-          is_deleted?: boolean
-          deleted_for?: string[]
-          is_read?: boolean
           created_at?: string
+          deleted_for?: string[]
+          id?: string
+          is_deleted?: boolean
+          is_edited?: boolean
+          is_read?: boolean
+          reply_to?: string | null
+          sender_id: string
+          type?: string
         }
         Update: {
-          id?: string
-          sender_id?: string
           content?: string | null
-          type?: string
-          reply_to?: string | null
-          is_edited?: boolean
-          is_deleted?: boolean
-          deleted_for?: string[]
-          is_read?: boolean
           created_at?: string
+          deleted_for?: string[]
+          id?: string
+          is_deleted?: boolean
+          is_edited?: boolean
+          is_read?: boolean
+          reply_to?: string | null
+          sender_id?: string
+          type?: string
         }
         Relationships: [
           {
@@ -89,27 +61,60 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          avatar_base64: string | null
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          is_online: boolean | null
+          last_seen: string | null
+          username: string
+        }
+        Insert: {
+          avatar_base64?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          is_online?: boolean | null
+          last_seen?: string | null
+          username: string
+        }
+        Update: {
+          avatar_base64?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_online?: boolean | null
+          last_seen?: string | null
+          username?: string
+        }
+        Relationships: []
+      }
       reactions: {
         Row: {
+          created_at: string
+          emoji: string
           id: string
           message_id: string
           user_id: string
-          emoji: string
-          created_at: string
         }
         Insert: {
+          created_at?: string
+          emoji: string
           id?: string
           message_id: string
           user_id: string
-          emoji: string
-          created_at?: string
         }
         Update: {
+          created_at?: string
+          emoji?: string
           id?: string
           message_id?: string
           user_id?: string
-          emoji?: string
-          created_at?: string
         }
         Relationships: [
           {
@@ -123,19 +128,19 @@ export type Database = {
       }
       typing_status: {
         Row: {
-          user_id: string
           is_typing: boolean
           updated_at: string
+          user_id: string
         }
         Insert: {
-          user_id: string
           is_typing?: boolean
           updated_at?: string
+          user_id: string
         }
         Update: {
-          user_id?: string
           is_typing?: boolean
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -144,7 +149,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      can_register: { Args: never; Returns: boolean }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
@@ -156,6 +161,7 @@ export type Database = {
 }
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
@@ -252,6 +258,23 @@ export type Enums<
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
