@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Send, Trash2, Bot, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { chatWithAI } from "@/lib/ai.functions";
+import { BotIcon, SendIcon, SpinnerIcon, TrashIcon } from "@/components/icons";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -25,10 +25,15 @@ function ChatPage() {
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const hasScrolledOnce = useRef(false);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: hasScrolledOnce.current ? "smooth" : "auto" });
+    hasScrolledOnce.current = true;
   }, [messages, sending]);
+
 
   async function send() {
     const text = input.trim();
@@ -66,7 +71,7 @@ function ChatPage() {
       {/* Header */}
       <header className="flex items-center gap-3 border-b border-border/60 bg-card/40 px-4 py-3 backdrop-blur">
         <div className="grid h-10 w-10 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30">
-          <Bot className="h-5 w-5" />
+          <BotIcon className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-semibold leading-tight">Pocket AI</h1>
@@ -78,7 +83,7 @@ function ChatPage() {
           aria-label="Clear conversation"
           className="grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive disabled:opacity-30"
         >
-          <Trash2 className="h-5 w-5" />
+          <TrashIcon className="h-5 w-5" />
         </button>
       </header>
 
@@ -87,7 +92,7 @@ function ChatPage() {
         {messages.length === 0 && !sending ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
             <div className="grid h-16 w-16 place-items-center rounded-3xl bg-primary/10 text-primary">
-              <Bot className="h-8 w-8" />
+              <BotIcon className="h-8 w-8" />
             </div>
             <h2 className="mt-4 text-lg font-semibold">Say hello in any language</h2>
             <p className="mt-1 max-w-xs text-sm text-muted-foreground">
@@ -148,7 +153,7 @@ function ChatPage() {
             aria-label="Send"
             className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition active:scale-95 disabled:opacity-40"
           >
-            {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+            {sending ? <SpinnerIcon className="h-5 w-5" /> : <SendIcon className="h-5 w-5" />}
           </button>
         </div>
       </div>
