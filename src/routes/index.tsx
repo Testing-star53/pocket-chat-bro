@@ -12,7 +12,11 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Chat with Pocket AI in any language. No accounts, no history, nothing stored." },
       { property: "og:title", content: "Pocket AI — Private Multilingual Chat" },
       { property: "og:description", content: "Chat with Pocket AI in any language. No accounts, no history, nothing stored." },
+      { property: "og:url", content: "https://pocket-chat-bro.lovable.app/" },
+      { name: "twitter:title", content: "Pocket AI — Private Multilingual Chat" },
+      { name: "twitter:description", content: "Chat with Pocket AI in any language. No accounts, no history, nothing stored." },
     ],
+    links: [{ rel: "canonical", href: "https://pocket-chat-bro.lovable.app/" }],
   }),
   component: ChatPage,
 });
@@ -74,7 +78,7 @@ function ChatPage() {
           <BotIcon className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-semibold leading-tight">Pocket AI</h1>
+          <h1 className="truncate font-semibold leading-tight">Pocket AI — Private Multilingual Chat</h1>
           <p className="text-xs text-muted-foreground">Multilingual · Private · Stateless</p>
         </div>
         <button
@@ -88,7 +92,7 @@ function ChatPage() {
       </header>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
+      <main ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4" aria-label="Conversation">
         {messages.length === 0 && !sending ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
             <div className="grid h-16 w-16 place-items-center rounded-3xl bg-primary/10 text-primary">
@@ -128,7 +132,7 @@ function ChatPage() {
             )}
           </div>
         )}
-      </div>
+      </main>
 
       {/* Composer */}
       <div className="border-t border-border/60 bg-card/40 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
@@ -144,6 +148,7 @@ function ChatPage() {
               }
             }}
             rows={1}
+            aria-label="Message"
             placeholder="Message Pocket AI…"
             className="max-h-32 min-h-[44px] flex-1 resize-none rounded-2xl bg-card px-4 py-2.5 text-[15px] outline-none focus:ring-2 focus:ring-primary/40"
           />
