@@ -4,7 +4,9 @@ import {
   createRootRouteWithContext,
   HeadContent,
   Scripts,
+  Link,
 } from "@tanstack/react-router";
+
 import type { ReactNode } from "react";
 import { Toaster } from "sonner";
 
@@ -26,7 +28,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [{ rel: "stylesheet", href: appCss }],
   }),
   component: RootComponent,
+  notFoundComponent: () => (
+    <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-4 p-6 text-center">
+      <h1 className="text-2xl font-semibold">Page not found</h1>
+      <Link to="/" className="rounded-full bg-primary px-5 py-2 font-medium text-primary-foreground">
+        Back to chat
+      </Link>
+    </div>
+  ),
 });
+
 
 const queryClient = new QueryClient();
 
