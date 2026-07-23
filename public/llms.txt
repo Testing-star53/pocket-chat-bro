@@ -1,0 +1,9 @@
+# Pocket AI
+
+> A private, stateless multilingual AI chat. No accounts, no history, nothing stored.
+
+Pocket AI is a single-page web app where anyone can chat with an AI assistant in any language. Messages exist only in the current browser tab — refreshing clears everything. No sign-up, no tracking, no server-side storage.
+
+## Pages
+
+- [Chat](/): The Pocket AI chat interface — multilingual, private, stateless.
